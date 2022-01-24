@@ -21,7 +21,7 @@ class Data():
                               "special_2": "What is an expensive location in the movie ",
                               "prison": "Which one is a tragic area in the movie ",
                               "free_parking": "What is the loveliest place in the movie "}
-        PATH = "~/Desktop/"
+        PATH = "./"
         FILENAME = "tmdb_5000_credits.csv"
         FILENAME_MONOPOLY = "monopoly_action_cards_keywords.csv"
         full_path = os.path.expanduser(PATH)
@@ -102,9 +102,9 @@ class Data():
 class Dimension(Data):
     def __init__(self):
         Data.__init__(self)
-        self.topic = "Furious 7"
-        #self.topic = random.choice(list(self.cast_dict))
-        self.cast = self.cast_dict[self.topic]
+        self.topic = None
+        self.topic = random.choice(list(self.cast_dict))
+        self.cast = None
         self.topic_text = self.get_wiki_data_for_topic()
         self.new_field = {"streets": {"1-3": [], "4-6": [], "7-9": [], "10-12": [],
                                  "13-15": [], "16-18": [], "expensive": [], "cheap": []},
@@ -117,6 +117,12 @@ class Dimension(Data):
 
         self.topic = random.choice(list(self.cast_dict))
         self.get_wiki_data_for_topic()
+        self.cast = self.cast_dict[self.topic]
+        if len(self.cast) < 27:
+            print('Cast list is too short, select a new topic.')
+            self.change_topic()
+        else:
+            print('Select ' + self.topic + ' as new topic.')
 
     def get_wiki_data_for_topic(self):
 
@@ -142,19 +148,21 @@ class Dimension(Data):
         :return: void
         """
         self.new_field["streets"]["expensive"] = [x + " Avenue" for x in self.cast[0:2]]
-        self.new_field["streets"]["cheap"] = [x + " Drive" for x in self.cast[8:10]]
-        self.new_field["streets"]["1-3"] = [x + " " + random.choice(self.street_names) for x in self.cast[11:14]]
-        self.new_field["streets"]["4-6"] = [x + " " + random.choice(self.street_names) for x in self.cast[15:18]]
-        self.new_field["streets"]["7-9"] = [x + " " + random.choice(self.street_names) for x in self.cast[19:22]]
-        self.new_field["streets"]["10-12"] = [x + " " + random.choice(self.street_names) for x in self.cast[23:26]]
-        self.new_field["streets"]["13-15"] = [x + " " + random.choice(self.street_names) for x in self.cast[27:30]]
-        self.new_field["streets"]["16-18"] = [x + " " + random.choice(self.street_names) for x in self.cast[31:33]]
-        self.new_field["stations"] = [x + " Station" for x in self.cast[3:7]]
+        self.new_field["streets"]["cheap"] = [x + " Drive" for x in self.cast[6:8]]
+        self.new_field["streets"]["1-3"] = [x + " " + random.choice(self.street_names) for x in self.cast[8:11]]
+        self.new_field["streets"]["4-6"] = [x + " " + random.choice(self.street_names) for x in self.cast[11:14]]
+        self.new_field["streets"]["7-9"] = [x + " " + random.choice(self.street_names) for x in self.cast[14:17]]
+        self.new_field["streets"]["10-12"] = [x + " " + random.choice(self.street_names) for x in self.cast[17:20]]
+        self.new_field["streets"]["13-15"] = [x + " " + random.choice(self.street_names) for x in self.cast[20:23]]
+        self.new_field["streets"]["16-18"] = [x + " " + random.choice(self.street_names) for x in self.cast[23:26]]
+        self.new_field["stations"] = [x + " Station" for x in self.cast[2:6]]
 
     def __generate_special_locations(self):
 
         model_name = "deepset/roberta-base-squad2"
-        q_a = pipeline('question-answering', model=model_name, tokenizer=model_name)
+        model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        q_a = pipeline('question-answering', model=model, tokenizer=tokenizer)
 
         for category, question_body in self.question_dict.items():
             question = question_body + self.topic + "?"
@@ -409,59 +417,61 @@ class Dimension(Data):
                 self.generate_action_cards(counter)
 
 
-print(datetime.now())
-new_dimension = Dimension()
-print(datetime.now())
+# print(datetime.now())
+# new_dimension = Dimension()
+# new_dimension.generate_locations()
+# print(new_dimension.locations)
+# print(datetime.now())
 
-new_dimension.locations = ['GO',
- 'Mr. Nobody Street',
- 'Deckard Shaw Drive',
- 'Han Drive',
- 'Sean Boswell Lane',
- 'Elena Boulevard',
- 'Hector Road',
- 'Owen Shaw Drive',
- 'Safar Road',
- 'Jack Lane',
- 'Samantha Hobbs Alley',
- 'Letty Fan Park',
- 'Female Racer Park',
- 'Race Starter Lane',
- 'Hot Teacher Drive',
- 'Doctor Park',
- 'Merc Tech Road',
- 'Weapons Tech Lane',
- 'Dominic Toretto Avenue',
- "Brian O'Conner Avenue",
- 'Kiet Drive',
- 'Kara Drive',
- 'Walker',
- 'Los Angeles',
- 'Letty Station',
- 'Roman Station',
- "Tej (as Chris 'Ludacris' Bridges) Station",
- 'Mia Station',
- 'Walker',
- 'Abu Dhabi']
-
-new_dimension.new_field = {'streets': {'1-3': ['Mr. Nobody Street', 'Deckard Shaw Drive', 'Han Drive'],
-  '4-6': ['Sean Boswell Lane', 'Elena Boulevard', 'Hector Road'],
-  '7-9': ['Owen Shaw Drive', 'Safar Road', 'Jack Lane'],
-  '10-12': ['Samantha Hobbs Alley', 'Letty Fan Park', 'Female Racer Park'],
-  '13-15': ['Race Starter Lane', 'Hot Teacher Drive', 'Doctor Park'],
-  '16-18': ['Merc Tech Road', 'Weapons Tech Lane'],
-  'expensive': ['Dominic Toretto Avenue', "Brian O'Conner Avenue"],
-  'cheap': ['Kiet Drive', 'Kara Drive']},
- 'stations': ['Letty Station',
-  'Roman Station',
-  "Tej (as Chris 'Ludacris' Bridges) Station",
-  'Mia Station'],
- 'prison': ['Walker'],
- 'free_parking': ['Abu Dhabi'],
- 'special': {'1': ['Walker'], '2': ['Los Angeles']}}
-
-#new_dimension.generate_locations()
-new_dimension.generate_action_cards()
+# new_dimension.locations = ['GO',
+#  'Mr. Nobody Street',
+#  'Deckard Shaw Drive',
+#  'Han Drive',
+#  'Sean Boswell Lane',
+#  'Elena Boulevard',
+#  'Hector Road',
+#  'Owen Shaw Drive',
+#  'Safar Road',
+#  'Jack Lane',
+#  'Samantha Hobbs Alley',
+#  'Letty Fan Park',
+#  'Female Racer Park',
+#  'Race Starter Lane',
+#  'Hot Teacher Drive',
+#  'Doctor Park',
+#  'Merc Tech Road',
+#  'Weapons Tech Lane',
+#  'Dominic Toretto Avenue',
+#  "Brian O'Conner Avenue",
+#  'Kiet Drive',
+#  'Kara Drive',
+#  'Walker',
+#  'Los Angeles',
+#  'Letty Station',
+#  'Roman Station',
+#  "Tej (as Chris 'Ludacris' Bridges) Station",
+#  'Mia Station',
+#  'Walker',
+#  'Abu Dhabi']
+#
+# new_dimension.new_field = {'streets': {'1-3': ['Mr. Nobody Street', 'Deckard Shaw Drive', 'Han Drive'],
+#   '4-6': ['Sean Boswell Lane', 'Elena Boulevard', 'Hector Road'],
+#   '7-9': ['Owen Shaw Drive', 'Safar Road', 'Jack Lane'],
+#   '10-12': ['Samantha Hobbs Alley', 'Letty Fan Park', 'Female Racer Park'],
+#   '13-15': ['Race Starter Lane', 'Hot Teacher Drive', 'Doctor Park'],
+#   '16-18': ['Merc Tech Road', 'Weapons Tech Lane'],
+#   'expensive': ['Dominic Toretto Avenue', "Brian O'Conner Avenue"],
+#   'cheap': ['Kiet Drive', 'Kara Drive']},
+#  'stations': ['Letty Station',
+#   'Roman Station',
+#   "Tej (as Chris 'Ludacris' Bridges) Station",
+#   'Mia Station'],
+#  'prison': ['Walker'],
+#  'free_parking': ['Abu Dhabi'],
+#  'special': {'1': ['Walker'], '2': ['Los Angeles']}}
+#
+# #new_dimension.generate_locations()
+# new_dimension.generate_action_cards()
 
 
 
