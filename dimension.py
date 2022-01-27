@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 import wikipediaapi
-import json
 import random
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import nltk
@@ -10,17 +9,24 @@ nltk.download('averaged_perceptron_tagger')
 import re
 import requests
 from scipy import spatial
-from datetime import datetime
+from ordered_set import OrderedSet
+import json
+from wordfilter import Wordfilter
+
 
 
 class Data():
     def __init__(self):
         self.API_TOKEN = "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"
         self.street_names = ['Park', 'Street', 'Boulevard', 'Road', 'Main Street', 'Drive', 'Lane', 'Alley']
-        self.question_dict = {"special_1": "What is an important monument in the movie ",
-                              "special_2": "What is an expensive location in the movie ",
-                              "prison": "Which one is a tragic area in the movie ",
-                              "free_parking": "What is the loveliest place in the movie "}
+        self.question_dict = {"special_1": ["What is an important monument in the movie ",
+                                            "What is an extraordinary effect in the movie "],
+                              "special_2": ["What is an expensive item in the movie ",
+                                            "Which one is a challenging and difficult situation in the movie "],
+                              "prison": ["What is the most dramatic and darkest event in the movie ",
+                                         "What is the audience afraid of in the movie "],
+                              "free_parking": ["What is the loveliest place in the movie ",
+                                               "What is the nicest and happiest location in the movie "]}
         PATH = "./"
         FILENAME = "tmdb_5000_credits.csv"
         FILENAME_MONOPOLY = "monopoly_action_cards_keywords.csv"
@@ -43,6 +49,7 @@ class Data():
         self.pronouns = ["you","your","yours"]
         self.generation_prompt_text = self.prepare_generation_prompt(self.monopoly_data)
         self.sent_prompt_text = self.prepare_sentiment_prompt(self.monopoly_data)
+        self.wordfilter = Wordfilter()
 
 
     def clean_movie_dataset(self, movie_data):
@@ -80,6 +87,12 @@ class Data():
         return cast_dict
 
     def prepare_generation_prompt(self, monopoly_data):
+        """
+        :param monopoly_data: pd.DataFrame with training data
+        prepare the few-shot prompt for the key-to-text model
+        inference api with the original monopoly data
+        :return: generation_prompt_text
+        """
 
         generation_prompt_text = ""
 
@@ -90,6 +103,12 @@ class Data():
         return generation_prompt_text
 
     def prepare_sentiment_prompt(self, monopoly_data):
+        """
+        :param monopoly_data: pd.DataFrame with training data
+        prepare the few-shot prompt for the sentiment classification
+        model api with the original monopoly data
+        :return: sent_prompt_text
+        """
 
         sent_prompt_text = ""
 
@@ -102,9 +121,8 @@ class Data():
 class Dimension(Data):
     def __init__(self):
         Data.__init__(self)
-        self.topic = None
         self.topic = random.choice(list(self.cast_dict))
-        self.cast = None
+        self.cast = self.cast_dict[self.topic]
         self.topic_text = self.get_wiki_data_for_topic()
         self.new_field = {"streets": {"1-3": [], "4-6": [], "7-9": [], "10-12": [],
                                  "13-15": [], "16-18": [], "expensive": [], "cheap": []},
@@ -113,18 +131,58 @@ class Dimension(Data):
         self.prison = ""
         self.action_cards = []
 
-    def change_topic(self):
 
-        self.topic = random.choice(list(self.cast_dict))
-        self.get_wiki_data_for_topic()
-        self.cast = self.cast_dict[self.topic]
+    def check_topic_cast(self):
+        """
+        check if cast data of the topic is meeting the
+        dimension criteria
+        clean special characters in character names
+        :return:
+        """
+
         if len(self.cast) < 27:
             print('Cast list is too short, select a new topic.')
             self.change_topic()
         else:
-            print('Select ' + self.topic + ' as new topic.')
+            print("Topic is ok.")
+            new_set = OrderedSet()
+            hold_out_set = OrderedSet()
+            for character in self.cast:
+                position_bracket = character.find("(")
+                position_slash = character.find("/")
+                if position_bracket != -1:
+                    short_character = character[0:position_bracket]
+                    if len(short_character) > 25:
+                        hold_out_set.add(short_character)
+                    else:
+                        new_set.add(short_character)
+                elif position_slash != -1:
+                    short_character = character[0:position_slash]
+                    if len(short_character) > 25:
+                        hold_out_set.add(short_character)
+                    else:
+                        new_set.add(short_character)
+                else:
+                    new_set.add(character)
+            if len(hold_out_set) != 0:
+                new_set.union(hold_out_set)
+
+            self.cast = list(new_set)
+
+    def change_topic(self):
+        """
+        If there is no wikipedia page for the selected topic
+        or the number of entries in the character cast is too small for the monopoly field
+        -> change the topic
+        :return: void
+        """
+        self.topic = random.choice(list(self.cast_dict))
+        self.cast = self.cast_dict[self.topic]
+        self.get_wiki_data_for_topic()
 
     def get_wiki_data_for_topic(self):
+
+        print("Selected topic is: ", self.topic)
 
         wiki_en_wiki = wikipediaapi.Wikipedia(
             language='en',
@@ -132,7 +190,7 @@ class Dimension(Data):
 
         ## check if page for topic exists
         if wiki_en_wiki.page(self.topic).exists():
-            print("Topic is ok.")
+            self.check_topic_cast()
             wiki_page = wiki_en_wiki.page(self.topic)
             topic_text = wiki_page.text
         else:
@@ -158,6 +216,15 @@ class Dimension(Data):
         self.new_field["stations"] = [x + " Station" for x in self.cast[2:6]]
 
     def __generate_special_locations(self):
+        """
+        - use Question Answering with roberta-base-squad2
+        to get special locations from wikipedia data
+        - Two questions per category are used,
+        evaluation of answer is done based on score of
+        qa-model, the answer with the higher score is selected
+
+        :return: void
+        """
 
         model_name = "deepset/roberta-base-squad2"
         model = AutoModelForQuestionAnswering.from_pretrained(model_name)
@@ -165,26 +232,39 @@ class Dimension(Data):
         q_a = pipeline('question-answering', model=model, tokenizer=tokenizer)
 
         for category, question_body in self.question_dict.items():
-            question = question_body + self.topic + "?"
+            imd_response = []
+            for question_item in question_body:
+                question = question_item + self.topic + "?"
+                print("Trying to find good locations ... ", question)
 
-            QA_input = {
-                'question': question,
-                'context': self.topic_text
-            }
-            response = q_a(QA_input)
+                QA_input = {
+                    'question': question,
+                    'context': self.topic_text
+                }
+                response = q_a(QA_input)
+                print("This the candidate: ", response)
+                ## store answer tuples in intermediate list
+                imd_response.append((response["score"], response["answer"]))
+
+            ## use answer with higher score
+            if imd_response[0][0] > imd_response[1][0]:
+                reply = imd_response[0][1]
+            else:
+                reply = imd_response[1][1]
 
             if category == "special_1":
-                self.new_field["special"]["1"] = [response["answer"]]
+                self.new_field["special"]["1"] = [reply]
             elif category == "special_2":
-                self.new_field["special"]["2"] = [response["answer"]]
+                self.new_field["special"]["2"] = [reply]
             else:
-                self.new_field[category] = [response["answer"]]
+                self.new_field[category] = [reply]
 
         self.prison = self.new_field["prison"][0]
 
     def __store_locations(self):
-
-        ## locations into flat list
+        """
+        flatten new_field dict into locations list
+        """
         for _, value in self.new_field["streets"].items():
             for item in value:
                 self.locations.append(item)
@@ -198,8 +278,11 @@ class Dimension(Data):
 
     def generate_locations(self):
 
+        print("Generating basic locations ...")
         self.__generate_basic_locations()
+        print("Basic locations done. Generation special locations ...")
         self.__generate_special_locations()
+        print("Special locations done.")
         self.__store_locations()
 
     def keyword_generation(self):
@@ -233,6 +316,10 @@ class Dimension(Data):
     def query(self, payload='',
               parameters={'max_new_tokens': 25, 'temperature': 1, 'end_sequence': "###"},
               options={'use_cache': False}):
+        """
+        gpt-neo api inference call for key-to-text generation
+        :return:
+        """
         API_URL = "https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-2.7B"
         headers = {"Authorization": f"Bearer {self.API_TOKEN}"}
         body = {"inputs": payload, 'parameters': parameters, 'options': options}
@@ -245,6 +332,10 @@ class Dimension(Data):
             return response.json()[0]['generated_text']
 
     def __preprocess(self, sent):
+        """
+        :param sent: sentence to preprocess
+        :return: tuple (token, pos_tag) of the input sentence
+        """
         sent = nltk.word_tokenize(sent)
         sent = nltk.pos_tag(sent)
         return sent
@@ -254,9 +345,9 @@ class Dimension(Data):
         :pos_tuple_of_sentences: tuple (token, pos_tag) as returned from preprocess function
 
         crop pos tags into relevant groups (first two letters)
-        count occurences of pos tags in input sentence
+        count occurrences of pos tags in input sentence
 
-        :returns: pandas DataFrame with pos_tag and its frequency
+        :returns: freq_df, pd.DataFrame with pos_tag and its frequency
 
         """
         pos_df = pd.DataFrame(pos_tuples_of_sentence, columns=["token", "long_pos_tag"])
@@ -308,7 +399,7 @@ class Dimension(Data):
 
         score = self.__score_weighting(similarity_score, len_score)
 
-        return score
+        return similarity_score, len_score, score
 
     def __get_reference_for_sentence(self, location, sentiment):  ## monopoly_data):
 
@@ -336,6 +427,14 @@ class Dimension(Data):
         return reference
 
     def __action_from_action_card(self, action_card):
+        """
+        :param action_card: generated action card
+        evaluate the action the player has to do when an action
+        card is drawn
+        - check against locations and cast to find places
+        - extract numbers
+        :return: go_to_location (str), number (int)
+        """
         ## search action card for locations
         for location in self.locations:
             ## exact matching for GO
@@ -351,6 +450,16 @@ class Dimension(Data):
                     break
                 else:
                     go_to_location = None
+
+        ## search action card for character from cast
+        for character in self.cast:
+            if action_card.lower().find(character.lower()) != -1:
+                imd_location = [string for string in self.locations if character in string]
+                go_to_location = imd_location[0]
+                break
+            else:
+                go_to_location = None
+
         ## if action card contains "prison", go to the current prison location
         ## same for station
         if go_to_location is None:
@@ -372,7 +481,9 @@ class Dimension(Data):
 
         return go_to_location, number
 
-    def generate_action_cards(self, counter=0, number_of_cards=2):
+    def generate_action_cards(self, counter=0, number_of_cards=10):
+
+        print("Generating action cards... ")
 
         print("Counter is: ", counter)
 
@@ -401,78 +512,86 @@ class Dimension(Data):
 
             print("Action sentiment is: ", action_sentiment)
 
+            ## check sentiment
+            if action_sentiment not in ["neutral", "positiv", "negativ"]:
+                undefined_sentiment = True
+            else:
+                undefined_sentiment = False
+
             ## get reference
             reference = self.__get_reference_for_sentence(location, action_sentiment)
+            print("The reference is: ", reference)
 
             ## evaluate action card against reference
-            score = self.__eval_sentence(reference, action_card)
+            similarity_score, len_score, score = self.__eval_sentence(reference, action_card)
+            #score = self.__eval_sentence(reference, action_card)
+            print("The score for the action card is: ", similarity_score, len_score, score)
+            ## outer regulator
+            regulated = self.wordfilter.blacklisted(action_card)
 
             ## if action card OK, append
-            if score >= 0.5:
+            if not regulated and not undefined_sentiment and score >= 0.5:
                 location, number = self.__action_from_action_card(action_card)
+                print("Sentiment, Location and number extracted: ", action_sentiment, location, number)
                 self.action_cards.append((action_card, action_sentiment, location, number))
                 counter += 1
                 self.generate_action_cards(counter)
             else:
+                print("Action card did not meet criteria, try again...")
                 self.generate_action_cards(counter)
 
+new_dimension = Dimension()
+new_dimension.generate_locations()
+new_dimension.generate_action_cards()
+"""
+generate dimensions for live demo
 
-# print(datetime.now())
-# new_dimension = Dimension()
-# new_dimension.generate_locations()
-# print(new_dimension.locations)
-# print(datetime.now())
+new_dimension = Dimension()
+new_dimension.generate_locations()
+new_dimension.generate_action_cards()
 
-# new_dimension.locations = ['GO',
-#  'Mr. Nobody Street',
-#  'Deckard Shaw Drive',
-#  'Han Drive',
-#  'Sean Boswell Lane',
-#  'Elena Boulevard',
-#  'Hector Road',
-#  'Owen Shaw Drive',
-#  'Safar Road',
-#  'Jack Lane',
-#  'Samantha Hobbs Alley',
-#  'Letty Fan Park',
-#  'Female Racer Park',
-#  'Race Starter Lane',
-#  'Hot Teacher Drive',
-#  'Doctor Park',
-#  'Merc Tech Road',
-#  'Weapons Tech Lane',
-#  'Dominic Toretto Avenue',
-#  "Brian O'Conner Avenue",
-#  'Kiet Drive',
-#  'Kara Drive',
-#  'Walker',
-#  'Los Angeles',
-#  'Letty Station',
-#  'Roman Station',
-#  "Tej (as Chris 'Ludacris' Bridges) Station",
-#  'Mia Station',
-#  'Walker',
-#  'Abu Dhabi']
-#
-# new_dimension.new_field = {'streets': {'1-3': ['Mr. Nobody Street', 'Deckard Shaw Drive', 'Han Drive'],
-#   '4-6': ['Sean Boswell Lane', 'Elena Boulevard', 'Hector Road'],
-#   '7-9': ['Owen Shaw Drive', 'Safar Road', 'Jack Lane'],
-#   '10-12': ['Samantha Hobbs Alley', 'Letty Fan Park', 'Female Racer Park'],
-#   '13-15': ['Race Starter Lane', 'Hot Teacher Drive', 'Doctor Park'],
-#   '16-18': ['Merc Tech Road', 'Weapons Tech Lane'],
-#   'expensive': ['Dominic Toretto Avenue', "Brian O'Conner Avenue"],
-#   'cheap': ['Kiet Drive', 'Kara Drive']},
-#  'stations': ['Letty Station',
-#   'Roman Station',
-#   "Tej (as Chris 'Ludacris' Bridges) Station",
-#   'Mia Station'],
-#  'prison': ['Walker'],
-#  'free_parking': ['Abu Dhabi'],
-#  'special': {'1': ['Walker'], '2': ['Los Angeles']}}
-#
-# #new_dimension.generate_locations()
-# new_dimension.generate_action_cards()
+second_dimension = Dimension(topic="Batman Begins")
+second_dimension.generate_locations()
+second_dimension.generate_action_cards()
 
+third_dimension = Dimension(topic="Pirates of the Caribbean: Dead Man's Chest")
+third_dimension.generate_locations()
+third_dimension.generate_action_cards()
+
+forth_dimension = Dimension(topic="Furious 7")
+forth_dimension.generate_locations()
+forth_dimension.generate_action_cards()
+
+fifth_dimension = Dimension(topic="Spectre")
+fifth_dimension.generate_locations()
+fifth_dimension.generate_action_cards()
+
+
+dimensions_file = dict()
+
+dimensions_file = {"1": {"topic" : new_dimension.topic,
+                         "locations": new_dimension.locations,
+                         "action_cards": new_dimension.action_cards},
+                   "2": {"topic" : second_dimension.topic,
+                                "locations": second_dimension.locations,
+                                "action_cards": second_dimension.action_cards},
+                   "3": {"topic" : third_dimension.topic,
+                                "locations": third_dimension.locations,
+                                "action_cards": third_dimension.action_cards},
+                   "4": {"topic" : forth_dimension.topic,
+                                "locations": forth_dimension.locations,
+                                "action_cards": forth_dimension.action_cards},
+                   "5": {"topic" : fifth_dimension.topic,
+                                "locations": fifth_dimension.locations,
+                                "action_cards": fifth_dimension.action_cards}}
+
+with open('dimensions_file.json', 'w') as f:
+    json.dump(dimensions_file, f)
+
+dimensions_file["2"]
+with open('dimensions_file.json') as json_file:
+    dimensions = json.load(json_file)
+"""
 
 
 
