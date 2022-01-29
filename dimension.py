@@ -4,6 +4,7 @@ import wikipediaapi
 import random
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import nltk
+
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 import re
@@ -12,7 +13,6 @@ from scipy import spatial
 from ordered_set import OrderedSet
 import json
 from wordfilter import Wordfilter
-
 
 
 class Data():
@@ -32,25 +32,24 @@ class Data():
         FILENAME_MONOPOLY = "monopoly_action_cards_keywords.csv"
         full_path = os.path.expanduser(PATH)
         os.chdir(full_path)
-        movie_characters = pd.read_csv(FILENAME, sep=",")
+        movie_characters = pd.read_csv(FILENAME, sep=",", engine='python')
         self.cast_dict = self.clean_movie_dataset(movie_characters)
         self.monopoly_data = pd.read_csv(FILENAME_MONOPOLY, sep=";")
         ## extracted from orig monopoly data via pos-tagging
         self.action_verbs_monopoly = ["Pay", "Take", "Come", "Go", "Get", "Receive",
-                                      "Inherit", "Win", "Pass","Collect", "being released",
+                                      "Inherit", "Win", "Pass", "Collect", "being released",
                                       "Keep", "Sell"]
         self.action_verbs = ["Act", "Answer", "Approve", "Arrange", "Break", "Build", "Buy", "Coach", "Color",
-                             "Cough", "Create","Complete", "Cry", "Dance", "Describe", "Draw", "Drink", "Eat",
-                             "Edit", "Enter", "Exit","Imitate", "Invent", "Jump", "Laugh", "Lie", "Listen",
-                             "Paint", "Plan", "Play", "Read", "Replace","Run", "Scream", "See", "Shop", "Shout",
-                             "Sing", "Skip", "Sleep", "Sneeze", "Solve", "Study","Teach",
+                             "Cough", "Create", "Complete", "Cry", "Dance", "Describe", "Draw", "Drink", "Eat",
+                             "Edit", "Enter", "Exit", "Imitate", "Invent", "Jump", "Laugh", "Lie", "Listen",
+                             "Paint", "Plan", "Play", "Read", "Replace", "Run", "Scream", "See", "Shop", "Shout",
+                             "Sing", "Skip", "Sleep", "Sneeze", "Solve", "Study", "Teach",
                              "Touch", "Turn", "Walk", "Win", "Write", "Whistle", "Yank", "Zip"]
         ## extracted from orig monopoly data via pos-tagging
-        self.pronouns = ["you","your","yours"]
+        self.pronouns = ["you", "your", "yours"]
         self.generation_prompt_text = self.prepare_generation_prompt(self.monopoly_data)
         self.sent_prompt_text = self.prepare_sentiment_prompt(self.monopoly_data)
         self.wordfilter = Wordfilter()
-
 
     def clean_movie_dataset(self, movie_data):
         """
@@ -118,6 +117,7 @@ class Data():
 
         return sent_prompt_text
 
+
 class Dimension(Data):
     def __init__(self):
         Data.__init__(self)
@@ -125,12 +125,11 @@ class Dimension(Data):
         self.cast = self.cast_dict[self.topic]
         self.topic_text = self.get_wiki_data_for_topic()
         self.new_field = {"streets": {"1-3": [], "4-6": [], "7-9": [], "10-12": [],
-                                 "13-15": [], "16-18": [], "expensive": [], "cheap": []},
-                     "stations": [],"prison": [],"free_parking": [], "special": {"1": [], "2": []}}
+                                      "13-15": [], "16-18": [], "expensive": [], "cheap": []},
+                          "stations": [], "prison": [], "free_parking": [], "special": {"1": [], "2": []}}
         self.locations = ["GO"]
         self.prison = ""
         self.action_cards = []
-
 
     def check_topic_cast(self):
         """
@@ -465,7 +464,7 @@ class Dimension(Data):
         if go_to_location is None:
             if action_card.lower().find("prison") != -1:
                 go_to_location = self.prison
-            elif action_card.lower().find("station") != -1 :
+            elif action_card.lower().find("station") != -1:
                 go_to_location = random.choice(self.new_field["stations"])
             else:
                 go_to_location = None
@@ -505,9 +504,9 @@ class Dimension(Data):
 
             ## sentiment classification for action card
             sent_prompt = self.sent_prompt_text + "\nTweet: " + action_card + "\nSentiment:"
-            #print("Sentiment analysis prompt: ", sent_prompt)
+            # print("Sentiment analysis prompt: ", sent_prompt)
             sentiment = self.query(sent_prompt)
-            #print(sentiment)
+            # print(sentiment)
             action_sentiment = re.findall(r"(?<=Sentiment:\s).*", sentiment)[-1]
 
             print("Action sentiment is: ", action_sentiment)
@@ -524,7 +523,7 @@ class Dimension(Data):
 
             ## evaluate action card against reference
             similarity_score, len_score, score = self.__eval_sentence(reference, action_card)
-            #score = self.__eval_sentence(reference, action_card)
+            # score = self.__eval_sentence(reference, action_card)
             print("The score for the action card is: ", similarity_score, len_score, score)
             ## outer regulator
             regulated = self.wordfilter.blacklisted(action_card)
@@ -540,9 +539,10 @@ class Dimension(Data):
                 print("Action card did not meet criteria, try again...")
                 self.generate_action_cards(counter)
 
-new_dimension = Dimension()
-new_dimension.generate_locations()
-new_dimension.generate_action_cards()
+
+# new_dimension = Dimension()
+# new_dimension.generate_locations()
+# new_dimension.generate_action_cards()
 """
 generate dimensions for live demo
 
@@ -592,6 +592,3 @@ dimensions_file["2"]
 with open('dimensions_file.json') as json_file:
     dimensions = json.load(json_file)
 """
-
-
-
