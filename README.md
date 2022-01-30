@@ -39,7 +39,7 @@ The aim of the project is to develop a creative system that is following the con
 
 
 #### Resources used in the game:
-- Movie Dataset: tmdb_5000_movies.zip via https://www.kaggle.com/tmdb/tmdb-movie-metadata?select=tmdb_5000_movies.csv
+- Movie Dataset: tmdb_5000_movies.csv.zip via https://www.kaggle.com/tmdb/tmdb-movie-metadata?select=tmdb_5000_movies.csv
 - Action Verbs: (encoded in the file) via https://www.citationmachine.net/resources/grammar-guides/verb/list-verbs/
 - Original Monopoly Action Cards: monopoly_action_cards.csv, the data was manually generated from the original monopoly game
 - Wikipedia API via https://pypi.org/project/Wikipedia-API/0.3.5/
@@ -48,7 +48,8 @@ The aim of the project is to develop a creative system that is following the con
 
 
 #### How To:
-- The requirements.txt contains the packages used in the project
+- Unzip the file tmdb_5000_movies.csv.zip to tmdb_5000_movies.csv
+- Install all required packages listed in the requirements.txt
 - The game can be started via main.py
 - PLEASE NOTE: The generation of new dimensions is taking ca. 2 min, while waiting, check the console output for information what the creative system is computing in the back :-)
 - The file dimensions_file.json contains 5 example dimensions for exploration 
