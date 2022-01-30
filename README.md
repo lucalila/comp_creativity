@@ -8,7 +8,7 @@
 Following the example of the parlor game "Monopoly", the dimensions of the Monopoly changes with every "passing GO" of a player. The new dimension represents a new thematic world in comparison to the classic Monopoly. 
 
 #### Target:
-The aim of the project is to develop a creative system that is following the concepts of computational creativity as thaugt in the seminar by Philipp Wicke. The creative system is generating new dimensions, locations and action cards for each monopoly round. For details about the functionality of the creative system, please refer to the handout provided in the seminar.
+The aim of the project is to develop a creative system that is following the concepts of computational creativity as taught in the seminar by Philipp Wicke. The creative system is generating new dimensions, locations and action cards for each monopoly round. For details about the functionality of the creative system, please refer to the handout provided in the seminar.
 
 #### Components:
 - Generation of a new dimension (Topic)
