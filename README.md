@@ -33,7 +33,7 @@ The aim of the project is to develop a creative system that is following the con
 - Once an action card is drawn, the action card is displayed and must be accepted by the user
 - An action card will result in
 	- the player is moving to the location named in the action card AND/OR
-	- the player receives money (sentiment = negative) OR the player has to pay money (sentiment = negative)
+	- the player receives money (sentiment = positive) OR the player has to pay money (sentiment = negative)
 	OR
 	- no action, because no location was named in the action card and a neutral sentiment was classified
 
