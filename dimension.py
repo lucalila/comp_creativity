@@ -127,7 +127,7 @@ class Dimension(Data):
         self.new_field = {"streets": {"1-3": [], "4-6": [], "7-9": [], "10-12": [],
                                       "13-15": [], "16-18": [], "expensive": [], "cheap": []},
                           "stations": [], "prison": [], "free_parking": [], "special": {"1": [], "2": []}}
-        self.locations = ["GO"]
+        self.locations = ["Start"]
         self.prison = ""
         self.action_cards = []
 
@@ -437,7 +437,7 @@ class Dimension(Data):
         ## search action card for locations
         for location in self.locations:
             ## exact matching for GO
-            if location == "GO":
+            if location == "Start":
                 if action_card.find(location) != -1:
                     go_to_location = location
                     break
@@ -483,14 +483,11 @@ class Dimension(Data):
     def generate_action_cards(self, counter=0, number_of_cards=10):
 
         print("Generating action cards... ")
-
-        print("Counter is: ", counter)
-
         ## stop generation of action cards
         if counter > number_of_cards:
             return self.action_cards
-
         else:
+            print("Counter is: ", counter)
             ## keyword generation
             location, keyword_string = self.keyword_generation()
             print("This is the keyword string: ", keyword_string)
