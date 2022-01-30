@@ -41,7 +41,7 @@ The aim of the project is to develop a creative system that is following the con
 #### Resources used in the game:
 - Movie Dataset: tmdb_5000_movies.csv.zip via https://www.kaggle.com/tmdb/tmdb-movie-metadata?select=tmdb_5000_movies.csv
 - Action Verbs: (encoded in the file) via https://www.citationmachine.net/resources/grammar-guides/verb/list-verbs/
-- Original Monopoly Action Cards: monopoly_action_cards.csv, the data was manually generated from the original monopoly game
+- Original Monopoly Action Cards: monopoly_action_cards_keywords.csv, the data was manually generated from the original monopoly game
 - Wikipedia API via https://pypi.org/project/Wikipedia-API/0.3.5/
 - Regularization via https://github.com/dariusk/wordfilter
 - Key-to-Text Inference API: https://huggingface.co/blog/few-shot-learning-gpt-neo-and-inference-api
