@@ -1,0 +1,37 @@
+category;content;bias;keywords;;;
+Event card;Pay a fine of DM 200,- or take a community ticket.;negativ;pay, fine, community ticket;;;
+Event card;"Move up to Seestrasse. 
+If you come over Start, collect DM 4000,-.";neutral;move, Seestrasse, Start;;;
+Event card;Go back 3 fields.;neutral;go, fields;;;
+Event card;Go back to Badstraße.;neutral;go, Badstraße;;;
+Event card;Move forward to Schlossallee.;neutral;move, Schlossallee;;;
+Event card;Move forward to Start.;neutral;move, Start;;;
+Event card;Make a trip to the south station. When you get over Start, draw DM 4000,-.;neutral;trip, South Station, Start;;;
+Event card;The bank pays you a dividend DM 1000,-.;positiv;pay, you;;;
+Event card;Rent and bond interest are due. The bank pays you DM 3000,-.;positiv;due, bank, pay;;;
+Community card;Move forward to Start.;neutral;move, Start;;;
+Community card;You receive a 7% dividend on preferred shares. DM 900,-.;positiv;receive, you;;;
+Community card;You inherit: DM 2000,-.;positiv;inherit, you;;;
+Community card;From stock sales you receive: DM 500,-.;positiv;receive, you;;;
+Community card;The annual annuity is due. Draw DM 2000,-.;positiv;due, draw;;;
+Community card;You win a crossword puzzle contest. Draw DM 2000,-.;positiv;contest, win, draw;;;
+Community card;Bank error in your favor. Draw DM 4000,-.;positiv;favor, your, draw;;;
+Community card;Income tax refund. Draw DM 400,-.;positiv;refund, draw;;;
+Community card;You won the 2nd prize in a beauty contest. Draw DM 200,-.;positiv;won, prize, draw;;;
+Community card;It is your birthday. Collect DM 1000,- from each player.;positiv;birthday, player;;;
+Event card;Advance to the next station. The owner receives double the normal rent. If no player has a claim to this station yet, you can buy it from the bank.;neutral;next, field, Station, player, buy;;;
+Community card;Pay school fees: DM 3000,-.;negativ;pay, fee;;;
+Community card;Doctor's fees. Pay: DM 1000,-.;negativ;pay, fee;;;
+Event card;Advance to the opera square. If you get over Start, collect DM 4000,-.;neutral;Opera square, Start, collect;;;
+Event card;Fine for speeding: DM 300,-.;negativ;fine, speed;;;
+Event card;You have been elected to the board. Pay each player DM 1000,-.;negativ;elect, you, pay, player;;;
+Event card;Have all your houses renovated! Pay to the bank. For each house DM 500,- For each hotel DM 2000,-.;negativ;renovate, pay, house, hotel;;;
+Community card;Pay to the hospital: DM 2000,-.;negativ;pay, hospital;;;
+Community card;"You will be called upon to do road repair work. 
+Pay for your houses and hotels.
+DM 800,- per house. 
+DM 2300,- per hotel to the bank.";negativ;repair work, pay, house, hotel, bank;;;
+Event card;Go to the prison! Go directly there. Do not pass Start. Do not collect DM 4000,-.;negativ;prison, not pass, not collect;;;
+Event card;You will be released from prison! You must keep this card until you need it or sell it.;positiv;release, you, keep, card;;;
+Community card;Go to the prison! Go directly there. Do not pass Start. Do not collect DM 4000,-.;negativ;prison, not pass, not collect;;;
+Community card;You will be released from prison! You must keep this card until you need it or sell it.;positiv;release, you, keep, card;;;
