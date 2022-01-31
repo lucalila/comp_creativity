@@ -4,7 +4,7 @@ import requests
 
 def insert_a_pic(query_topic):
     url = "https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/Search/ImageSearchAPI"
-    query_topic = query_topic
+    query_topic = query_topic + " Movie"
     querystring = {"q": query_topic,
                    "pageNumber": "1",
                    "pageSize": "5",
@@ -33,5 +33,3 @@ def insert_a_pic(query_topic):
     file.write(response.content)
     file.close()
     return path
-
-# insert_a_pic('funsion 7')

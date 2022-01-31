@@ -139,7 +139,7 @@ class Dimension(Data):
         """
 
         if len(self.cast) < 27:
-            print('Cast list is too short, select a new topic.')
+            print('Cast list is too short, a new topic is selected.')
             self.change_topic()
         else:
             print("Topic is ok.")
@@ -576,13 +576,19 @@ class Dimension(Data):
 #new_dimension.generate_locations()
 #new_dimension.generate_action_cards()
 """
-generate dimensions for live demo
+"Harry Potter and the Half-Blood Prince"
+"Pirates of the Caribbean: Dead Man's Chest"
+"Furious 7"
+"Spectre"
+"The Lord of the Rings: The Fellowship of the Ring Movie"
 
-new_dimension = Dimension()
+
+#generate dimensions for live demo
+new_dimension = Dimension("Harry Potter and the Half-Blood Prince")
 new_dimension.generate_locations()
 new_dimension.generate_action_cards()
 
-second_dimension = Dimension(topic="Batman Begins")
+second_dimension = Dimension(topic="The Lord of the Rings: The Fellowship of the Ring")
 second_dimension.generate_locations()
 second_dimension.generate_action_cards()
 
@@ -598,15 +604,19 @@ fifth_dimension = Dimension(topic="Spectre")
 fifth_dimension.generate_locations()
 fifth_dimension.generate_action_cards()
 
+sixt_dimension = Dimension(topic="The Lord of the Rings: The Two Towers")
+sixt_dimension.generate_locations()
+sixt_dimension.generate_action_cards()
+
 
 dimensions_file = dict()
 
 dimensions_file = {"1": {"topic" : new_dimension.topic,
                          "locations": new_dimension.locations,
                          "action_cards": new_dimension.action_cards},
-                   "2": {"topic" : second_dimension.topic,
-                                "locations": second_dimension.locations,
-                                "action_cards": second_dimension.action_cards},
+                   "2": {"topic" : sixt_dimension.topic,
+                                "locations": sixt_dimension.locations,
+                                "action_cards": sixt_dimension.action_cards},
                    "3": {"topic" : third_dimension.topic,
                                 "locations": third_dimension.locations,
                                 "action_cards": third_dimension.action_cards},
@@ -620,7 +630,6 @@ dimensions_file = {"1": {"topic" : new_dimension.topic,
 with open('dimensions_file.json', 'w') as f:
     json.dump(dimensions_file, f)
 
-dimensions_file["2"]
 with open('dimensions_file.json') as json_file:
     dimensions = json.load(json_file)
 """
