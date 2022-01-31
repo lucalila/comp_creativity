@@ -13,7 +13,7 @@ class Player(object):
 
     def __init__(self, name, figure):
         self.name = name
-        self.money = 2000  # default money
+        self.money = 3000  # default money
         self.location = (688, 688)  # coordinate of GO
         self.pause = None  # bool
         self.round_count = 0
@@ -157,7 +157,7 @@ def lose(player):
                         loop = False
                         screen.blit(map_basic, (0, 0))
                         for player in player_pool:
-                            player.money = 2000
+                            player.money = 3000
                             player.location = (688, 688)
                             player.round_count = 0
                             game_start = False
@@ -246,12 +246,13 @@ def pass_by(player, active_grid=None):
         player.money -= active_grid.tax
 
     elif active_grid.owner:
-        print_message(f'{player.name} should pay {active_grid.owner} {active_grid.rent} Euro.',
-                      text_font)
-        player.money -= active_grid.rent
-        for p in player_pool:
-            if player != p:
-                p.money += active_grid.rent
+        if active_grid.owner != player.name:
+            print_message(f'{player.name} should pay {active_grid.owner} {active_grid.rent} Euro.',
+                          text_font)
+            player.money -= active_grid.rent
+            for p in player_pool:
+                if player != p:
+                    p.money += active_grid.rent
 
     elif active_grid.stop:
         print_message(f'{player.name} should take a break.', text_font)
