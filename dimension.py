@@ -17,7 +17,7 @@ from wordfilter import Wordfilter
 class Data():
     def __init__(self):
         self.API_TOKEN = "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"
-        self.street_names = ['Park', 'Street', 'Boulevard', 'Road', 'Main Street', 'Drive', 'Lane', 'Alley']
+        self.street_names = ['Park', 'Street', 'Boulevard', 'Road', 'Street', 'Drive', 'Lane', 'Alley']
         self.question_dict = {"special_1": ["What is an important monument in the movie ",
                                             "What is an extraordinary effect in the movie "],
                               "special_2": ["What is an expensive item in the movie ",
@@ -572,64 +572,11 @@ class Dimension(Data):
                 self.generate_action_cards(counter)
 
 
+
+
+
+## dimension can be tested manually via
 #new_dimension = Dimension()
 #new_dimension.generate_locations()
 #new_dimension.generate_action_cards()
-"""
-"Harry Potter and the Half-Blood Prince"
-"Pirates of the Caribbean: Dead Man's Chest"
-"Furious 7"
-"Spectre"
-"The Lord of the Rings: The Fellowship of the Ring Movie"
 
-
-#generate dimensions for live demo
-new_dimension = Dimension("Harry Potter and the Half-Blood Prince")
-new_dimension.generate_locations()
-new_dimension.generate_action_cards()
-
-second_dimension = Dimension(topic="The Lord of the Rings: The Fellowship of the Ring")
-second_dimension.generate_locations()
-second_dimension.generate_action_cards()
-
-third_dimension = Dimension(topic="Pirates of the Caribbean: Dead Man's Chest")
-third_dimension.generate_locations()
-third_dimension.generate_action_cards()
-
-forth_dimension = Dimension(topic="Furious 7")
-forth_dimension.generate_locations()
-forth_dimension.generate_action_cards()
-
-fifth_dimension = Dimension(topic="Spectre")
-fifth_dimension.generate_locations()
-fifth_dimension.generate_action_cards()
-
-sixt_dimension = Dimension(topic="The Lord of the Rings: The Two Towers")
-sixt_dimension.generate_locations()
-sixt_dimension.generate_action_cards()
-
-
-dimensions_file = dict()
-
-dimensions_file = {"1": {"topic" : new_dimension.topic,
-                         "locations": new_dimension.locations,
-                         "action_cards": new_dimension.action_cards},
-                   "2": {"topic" : sixt_dimension.topic,
-                                "locations": sixt_dimension.locations,
-                                "action_cards": sixt_dimension.action_cards},
-                   "3": {"topic" : third_dimension.topic,
-                                "locations": third_dimension.locations,
-                                "action_cards": third_dimension.action_cards},
-                   "4": {"topic" : forth_dimension.topic,
-                                "locations": forth_dimension.locations,
-                                "action_cards": forth_dimension.action_cards},
-                   "5": {"topic" : fifth_dimension.topic,
-                                "locations": fifth_dimension.locations,
-                                "action_cards": fifth_dimension.action_cards}}
-
-with open('dimensions_file.json', 'w') as f:
-    json.dump(dimensions_file, f)
-
-with open('dimensions_file.json') as json_file:
-    dimensions = json.load(json_file)
-"""
