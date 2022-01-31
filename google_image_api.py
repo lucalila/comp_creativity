@@ -1,5 +1,6 @@
 ## source: https://rapidapi.com/contextualwebsearch/api/web-search/
 import requests
+import re
 
 
 def insert_a_pic(query_topic):
@@ -26,6 +27,7 @@ def insert_a_pic(query_topic):
     photo_url = r["value"][0]["url"]
     response = requests.get(photo_url)
     query_topic = query_topic.replace(' ', '_')
+    query_topic = re.sub(":|/|,|;|-", "_", query_topic)
     ## save image
     path = f"./images/pic_{query_topic}.png"
     # storage_location = path + query_topic + ".png"
