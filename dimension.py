@@ -572,9 +572,9 @@ class Dimension(Data):
                 self.generate_action_cards(counter)
 
 
-new_dimension = Dimension()
-new_dimension.generate_locations()
-new_dimension.generate_action_cards()
+#new_dimension = Dimension()
+#new_dimension.generate_locations()
+#new_dimension.generate_action_cards()
 """
 generate dimensions for live demo
 

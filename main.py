@@ -6,7 +6,7 @@ from pygame import QUIT
 from dimension import Dimension
 from create_map import create_a_map
 
-load_from_save = False  # True for loading dimensions from saved json file
+load_from_save = True  # True for loading dimensions from saved json file
 
 
 class Player(object):
@@ -44,6 +44,7 @@ def change_dimension():
     pygame.display.flip()
 
     if not load_from_save:
+        print("why am I here")
         dimension = Dimension()
         dimension.change_topic()
         dimension.generate_locations()
