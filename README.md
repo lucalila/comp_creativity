@@ -51,8 +51,10 @@ The aim of the project is to develop a creative system that is following the con
 - Unzip the file tmdb_5000_movies.csv.zip to tmdb_5000_movies.csv
 - Install all required packages listed in the requirements.txt
 - The game can be started via main.py
-- PLEASE NOTE: The generation of new dimensions is taking ca. 2 min, while waiting, check the console output for information what the creative system is computing in the back :-)
+- You can select whether to generate new dimensions or to load pre-generated dimensions. Set the variable load_from_save in main.py respectively
 - The file dimensions_file.json contains 5 example dimensions for exploration 
+- PLEASE NOTE: The generation of new dimensions is taking ca. 2 min, while waiting, check the console output for information what the creative system is computing in the back :-)
 - dimension.py contains the development of the creative content in the game
+- Due to the image API, for some topics there are no proper images found and in the map are no images displayed
 - The folders contain the images that are needed to display the game
 
