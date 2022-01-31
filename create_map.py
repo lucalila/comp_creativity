@@ -1,4 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, UnidentifiedImageError
 from google_image_api import insert_a_pic
 #
 # name_list = ['GO',
@@ -63,16 +63,21 @@ def create_a_map(name_list, topic):
         map_text.multiline_text(cola, address_name, font=address_font, fill=(0, 0, 0))
     map_text.multiline_text((185, 544), f'Current Dimension: {topic}', font=dimension_font, fill=(0, 0, 0))
 
-    add_pic_path = insert_a_pic(topic)
-    add_pic = Image.open(add_pic_path).convert('RGBA')
-    add_pic = add_pic.resize((840, 430))
+    try:
+        add_pic_path = insert_a_pic(topic)
+        add_pic = Image.open(add_pic_path).convert('RGBA')
+        add_pic = add_pic.resize((840, 430))
 
-    # combine the two pics
-    out = Image.alpha_composite(base_map, text)
-    out.paste(add_pic, (192, 600))
+        # combine the two pics
+        out = Image.alpha_composite(base_map, text)
+        out.paste(add_pic, (192, 600))
+        # save the new map
+
+    except UnidentifiedImageError:
+        print('Sorry we have not found the right pic for this movie.')
+        out = Image.alpha_composite(base_map, text)
+
     out = out.resize((750, 750))  # out.show()
-    # save the new map
-
     topic = topic.replace(' ', '_')
     save_path = f'./images/{topic}.png'
     out.save(save_path)
