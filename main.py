@@ -1,3 +1,4 @@
+import json
 import pygame
 import random
 import sys
@@ -5,20 +6,15 @@ from pygame import QUIT
 from dimension import Dimension
 from create_map import create_a_map
 
-locations = list()
-action_cards = list()
-map_path = None
-topic = None
-map = None
-dimension_count = 0
+load_from_save = False  # True for loading dimensions from saved json file
 
 
 class Player(object):
 
     def __init__(self, name, figure):
         self.name = name
-        self.money = 2000  # default money?
-        self.location = (688, 688)  # coordinate of START needed
+        self.money = 2000  # default money
+        self.location = (688, 688)  # coordinate of GO
         self.pause = None  # bool
         self.round_count = 0
         self.figure = figure
@@ -42,20 +38,42 @@ def change_dimension():
     global map_path
     global map
     global topic
-    dimension = Dimension()
-    dimension.change_topic()
-    dimension.generate_locations()
-    dimension.generate_action_cards()
-    locations = dimension.locations
-    action_cards = dimension.action_cards
-    topic = dimension.topic
-    map_path = create_a_map(locations, topic)
-    map = pygame.image.load(map_path).convert_alpha()
-    # change Grids name
-    grids_to_be_changed = [6, 8, 9, 11, 13, 14, 16, 18, 19, 21, 23, 24, 26, 27, 29, 31, 32, 34, 37, 39, 1, 3, 12, 28, 5,
-                           15, 25, 35, 30, 20]
-    for i in range(0, 30):
-        grids_pool[grids_to_be_changed[i]].name = locations[i + 1]
+    global load_from_save
+    screen.blit(map_basic, (0, 0))
+    print_message('Loading new dimension...', text_font, message_coors[0])
+    pygame.display.flip()
+
+    if not load_from_save:
+        dimension = Dimension()
+        dimension.change_topic()
+        dimension.generate_locations()
+        dimension.generate_action_cards()
+        locations = dimension.locations
+        action_cards = dimension.action_cards
+        topic = dimension.topic
+        map_path = create_a_map(locations, topic)
+        map = pygame.image.load(map_path).convert_alpha()
+        # change Grids name
+        grids_to_be_changed = [6, 8, 9, 11, 13, 14, 16, 18, 19, 21, 23, 24, 26, 27, 29, 31, 32, 34, 37, 39, 1, 3, 12,
+                               28, 5,
+                               15, 25, 35, 30, 20]
+        for i in range(0, 30):
+            grids_pool[grids_to_be_changed[i]].name = locations[i + 1]
+
+    # live samples from saved dimensions
+    else:
+        dimension = saved_dimensions[str(dimension_count)]
+        locations = dimension['locations']
+        action_cards = dimension['action_cards']
+        topic = dimension['topic']
+        map_path = create_a_map(locations, topic)
+        map = pygame.image.load(map_path).convert_alpha()
+        # change Grids name
+        grids_to_be_changed = [6, 8, 9, 11, 13, 14, 16, 18, 19, 21, 23, 24, 26, 27, 29, 31, 32, 34, 37, 39, 1, 3, 12,
+                               28, 5,
+                               15, 25, 35, 30, 20]
+        for i in range(0, 30):
+            grids_pool[grids_to_be_changed[i]].name = locations[i + 1]
 
 
 def ask_the_player():
@@ -65,8 +83,8 @@ def ask_the_player():
     screen.blit(accept, accept_rect)
     screen.blit(cancel, cancel_rect)
     print_message('You have already changed 5 dimensions!', text_font)
-    print_message('If you want to continue, click the green button.', text_font)
-    print_message('If you want to end the game, click the red button.', text_font)
+    print_message('Click the green button to continue the game.', text_font)
+    print_message('Click the red button to end the game.', text_font)
     text_position = 0
     pygame.display.flip()
     loop = True
@@ -88,26 +106,21 @@ def print_money():
     print_message(player2_money, text_font, (500, 300))
 
 
-def blit_alpha(target, source, location, opacity):
-    x = location[0]
-    y = location[1]
-    temp = pygame.Surface((source.get_width(), source.get_height())).convert()
-    temp.blit(target, (-x, -y))
-    temp.blit(source, (0, 0))
-    temp.set_alpha(opacity)
-    target.blit(temp, location)
-
-
-def take_a_action(player, action_tuple):
+def take_an_action(player, action_tuple):
+    global money
     if action_tuple[2]:
         for grid in grids_pool:
             if action_tuple[2] == grid.name:
                 target_grid = grid
                 player.location = target_grid.coor
                 player.round_count = grids_pool.index(target_grid)
-    elif action_tuple[1] == 'positive':
+                if target_grid.owner is None and target_grid.rent:
+                    print_message(f'The {target_grid.name} now belongs to {player.name}!', text_font)
+                    target_grid.owner = player.name
+                    player.money -= target_grid.rent
+    if action_tuple[1] in ['positiv', 'neutral'] and action_tuple[3]:
         player.money += int(action_tuple[3])
-    elif action_tuple[1] == 'negative':
+    if action_tuple[1] == 'negativ' and action_tuple[3]:
         player.money -= int(action_tuple[3])
     screen.blit(map, (0, 0))
     screen.blit(dice_button, dice_rect)
@@ -124,8 +137,8 @@ def lose(player):
         for p in player_pool:
             if player != p:
                 print_message(f'{p.name} has won!', text_font)
-        print_message('If you want to restart, click the green button.', text_font)
-        print_message('If you want to end the game, click the red button.', text_font)
+        print_message('Click the green button to restart the game.', text_font)
+        print_message('Click the red button to end the game.', text_font)
         text_position = 0
         pygame.display.flip()
         loop = True
@@ -158,21 +171,30 @@ def move(player, point):
         player.round_count -= 39
         if player == Player1:
             dimension_count += 1
-            if dimension_count == 5:
+            if dimension_count == 6:
                 text_position = 0
                 ask_the_player()
                 screen.blit(map, (0, 0))
                 screen.blit(dice_button, dice_rect)
             change_dimension()
+            screen.blit(map, (0, 0))
             print_message('Dimension has now changed to ' + topic + ' !', text_font)
-        print_message('Over start, you have got 200$.', text_font)
+            screen.blit(dice_button, dice_rect)
+            screen.blit(money, money_rect)
+            print_money()
+            screen.blit(player1, Player1.location)
+            screen.blit(player2, Player2.location)
+        print_message(f'Over start, {player} have got 200 Euro.', text_font)
         player.money += 200
     player.location = grids_pool[player.round_count].coor
 
 
 def print_message(text, font, position=None):
     if len(text) > 46:
-        texts = [text[:47]+'-', text[47:]]
+        if len(text) > 92:
+            texts = [text[:47] + '-', text[47:92] + '-', text[92:]]
+        else:
+            texts = [text[:47] + '-', text[47:]]
     else:
         texts = [text]
     for text in texts:
@@ -211,17 +233,16 @@ def pass_by(player, active_grid=None):
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if accept_rect.collidepoint(event.pos):
-                        take_a_action(player, chance)
+                        take_an_action(player, chance)
                         loop = False
 
     elif active_grid.tax:
-        print_message(f'{player.name} should pay {active_grid.tax} for {active_grid.name}.',
+        print_message(f'{player.name} should pay {active_grid.tax} Euro for {active_grid.name}.',
                       text_font)
         player.money -= active_grid.tax
 
     elif active_grid.owner:
-        print_message(f'{player.name} should pay ' + active_grid.owner + ' ' + str(
-            active_grid.rent) + ' Euro.',
+        print_message(f'{player.name} should pay {active_grid.owner} {active_grid.rent} Euro.',
                       text_font)
         player.money -= active_grid.rent
         for p in player_pool:
@@ -266,16 +287,15 @@ if __name__ == '__main__':
     grids_pool = [Grid(a, b, c, d, e) for a, b, c, d, e in grids_tuples]
     for i in [2, 7, 17, 20, 33, 36]:
         grids_pool[i].name = 'Chance'
-        grids_pool[0].name = 'Go'
+        grids_pool[0].name = 'Start'
         grids_pool[4].name = 'Income Tax'
         grids_pool[10].name = 'Prison Visiting'
         grids_pool[38].name = 'Luxury Tax'
         message_coors = [(110, 110), (110, 140), (110, 170), (110, 200), (110, 230)]
 
-    # initialising
+    # initialising pagame
     pygame.init()
     clock = pygame.time.Clock()
-
     size = (750, 750)
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('Multidimensional_Monopoly')
@@ -301,6 +321,10 @@ if __name__ == '__main__':
     money = pygame.image.load('./images/money.png').convert_alpha()
     money = pygame.transform.scale(money, (70, 70))
 
+    # initialize saved dimensions
+    with open('./dimensions_file.json', 'r', encoding='utf-8') as d:
+        saved_dimensions = json.load(d)
+
     # initialize players and grids
     Player1 = Player('Player1', player1)
     Player2 = Player('Player2', player2)
@@ -320,14 +344,18 @@ if __name__ == '__main__':
 
     # variables initializing
     dice_point = 0
-    active_player = None
+    active_player = Player1
+    locations = list()
+    action_cards = list()
+    map_path = None
+    topic = None
+    map = None
+    dimension_count = 1
 
     # parameters while running
     run = True
-    button_alpha = 120
     game_start = False
     text_position = 0
-    active_player = Player1
 
     while run:
         if not game_start:
@@ -345,7 +373,7 @@ if __name__ == '__main__':
 
                     if start_rect.collidepoint(event.pos):  # 按下按钮
                         game_start = True
-                        if dimension_count == 0:
+                        if dimension_count == 1:
                             change_dimension()
                         screen.blit(map, (0, 0))
                         print_message('Game started!', text_font, (110, 110))
@@ -368,6 +396,7 @@ if __name__ == '__main__':
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     sys.exit()
 
                 if event.type == pygame.MOUSEBUTTONDOWN:

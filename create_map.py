@@ -1,36 +1,36 @@
 from PIL import Image, ImageDraw, ImageFont
 from google_image_api import insert_a_pic
-
-name_list = ['GO',
-             'Mr. Nobody Street',
-             'Deckard Shaw Drive',
-             'Han Drive',
-             'Sean Boswell Lane',
-             'Elena Boulevard',
-             'Hector Road',
-             'Owen Shaw Drive',
-             'Safar Road',
-             'Jack Lane',
-             'Samantha Hobbs Alley',
-             'Letty Fan Park',
-             'Female Racer Park',
-             'Race Starter Lane',
-             'Hot Teacher Drive',
-             'Doctor Park',
-             'Merc Tech Road',
-             'Weapons Tech Lane',
-             'Dominic Toretto Avenue',
-             "Brian O'Conner Avenue",
-             'Kiet Drive',
-             'Kara Drive',
-             'Walker',
-             'Los Angeles',
-             'Letty Station',
-             'Roman Station',
-             "Tej (as Chris 'Ludacris' Bridges) Station",
-             'Mia Station',
-             'Walker',
-             'Abu Dhabi']
+#
+# name_list = ['GO',
+#              'Mr. Nobody Street',
+#              'Deckard Shaw Drive',
+#              'Han Drive',
+#              'Sean Boswell Lane',
+#              'Elena Boulevard',
+#              'Hector Road',
+#              'Owen Shaw Drive',
+#              'Safar Road',
+#              'Jack Lane',
+#              'Samantha Hobbs Alley',
+#              'Letty Fan Park',
+#              'Female Racer Park',
+#              'Race Starter Lane',
+#              'Hot Teacher Drive',
+#              'Doctor Park',
+#              'Merc Tech Road',
+#              'Weapons Tech Lane',
+#              'Dominic Toretto Avenue',
+#              "Brian O'Conner Avenue",
+#              'Kiet Drive',
+#              'Kara Drive',
+#              'Walker',
+#              'Los Angeles',
+#              'Letty Station',
+#              'Roman Station',
+#              "Tej (as Chris 'Ludacris' Bridges) Station",
+#              'Mia Station',
+#              'Walker',
+#              'Abu Dhabi']
 
 
 # coor_list = [
@@ -61,7 +61,7 @@ def create_a_map(name_list, topic):
 
     for cola, address_name in zip(coor_list, address_name_list):  # address name list need to content \n
         map_text.multiline_text(cola, address_name, font=address_font, fill=(0, 0, 0))
-    map_text.multiline_text((192, 544), f'Current Dimension: {topic}', font=dimension_font, fill=(0, 0, 0))
+    map_text.multiline_text((185, 544), f'Current Dimension: {topic}', font=dimension_font, fill=(0, 0, 0))
 
     add_pic_path = insert_a_pic(topic)
     add_pic = Image.open(add_pic_path).convert('RGBA')
