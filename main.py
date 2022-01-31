@@ -95,6 +95,13 @@ def ask_the_player():
                 if accept_rect.collidepoint(event.pos):
                     loop = False
                 elif cancel_rect.collidepoint(event.pos):
+                    screen.blit(map_basic, (0, 0))
+                    if Player1.money > Player2.money:
+                        print_message('Player 1 has won! Bye!', text_font)
+                    else:
+                        print_message('Player 2 has won! Bye!', text_font)
+                    pygame.display.flip()
+                    pygame.time.delay(3000)
                     loop = False
                     pygame.quit()
                     sys.exit()
@@ -167,6 +174,7 @@ def lose(player):
 def move(player, point):
     global dimension_count
     global text_position
+    global run
     player.round_count += point
     if player.round_count >= 39:  # sum of grids
         player.round_count -= 39
@@ -175,17 +183,12 @@ def move(player, point):
             if dimension_count == 6:
                 text_position = 0
                 ask_the_player()
-                screen.blit(map, (0, 0))
-                screen.blit(dice_button, dice_rect)
             change_dimension()
             screen.blit(map, (0, 0))
-            print_message('Dimension has now changed to ' + topic + ' !', text_font)
             screen.blit(dice_button, dice_rect)
-            screen.blit(money, money_rect)
-            print_money()
-            screen.blit(player1, Player1.location)
-            screen.blit(player2, Player2.location)
-        print_message(f'Over start, {player} have got 200 Euro.', text_font)
+            text_position = 0
+            print_message(f'{player.name} has got a {dice_point}!', text_font)
+        print_message(f'Over start, {player.name} have got 200 Euro.', text_font)
         player.money += 200
     player.location = grids_pool[player.round_count].coor
 
