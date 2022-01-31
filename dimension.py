@@ -4,7 +4,6 @@ import wikipediaapi
 import random
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
 import nltk
-
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 import re
@@ -56,7 +55,7 @@ class Data():
         :movie_data: Pandas DataFrame holding movie titles, character cast
         Preprocess the data, we only need the characters from the movie in a dict
 
-        :returns: dictionary with key = movie title, value =
+        :returns: dictionary with key = movie title, value = character cast
         """
 
         cast_rows = []
@@ -285,6 +284,15 @@ class Dimension(Data):
         self.__store_locations()
 
     def keyword_generation(self):
+        """
+        The keyword list consists of a(n) randomly drawn
+        - action verb from the orig monopoly data
+        - additional action verb from the list
+        - pronoun from the orig monopoly data
+        - location of the current dimension
+        - a fixed number or no number at all
+        :return:
+        """
         first_verb = random.choice(self.action_verbs_monopoly).lower()
         second_verb = random.choice(self.action_verbs).lower()
         pronoun = random.choice(self.pronouns).lower()
@@ -356,6 +364,12 @@ class Dimension(Data):
         return freq_df
 
     def __eval_compare_structure(self, reference, new_sentence):
+        """
+        :param reference: str, the sentence the new action card should be compared to
+        :param new_sentence: str, the newly generated action card candidate
+        The structure of the two input sentences is compared via their pos
+        distribution
+        """
         ## preprocess both
         reference = self.__preprocess(reference)
         new_sentence = self.__preprocess(new_sentence)
@@ -374,7 +388,10 @@ class Dimension(Data):
         return similarity_score
 
     def __eval_compare_lengths(self, reference, new_sentence):
-
+        """
+        compare the length of reference against action card
+        candidate
+        """
         reference = reference.split(" ")
         new_sentence = new_sentence.split(" ")
         len_ref = len(reference)
@@ -393,6 +410,9 @@ class Dimension(Data):
         return score
 
     def __eval_sentence(self, reference, new_sentence):
+        """
+        apply the full evaluation
+        """
         similarity_score = self.__eval_compare_structure(reference, new_sentence)
         len_score = self.__eval_compare_lengths(reference, new_sentence)
 
@@ -400,7 +420,7 @@ class Dimension(Data):
 
         return similarity_score, len_score, score
 
-    def __get_reference_for_sentence(self, location, sentiment):  ## monopoly_data):
+    def __get_reference_for_sentence(self, location, sentiment):
 
         if location == self.prison:
             if sentiment == "positiv":
@@ -436,7 +456,7 @@ class Dimension(Data):
         """
         ## search action card for locations
         for location in self.locations:
-            ## exact matching for GO
+            ## exact matching for Start
             if location == "Start":
                 if action_card.find(location) != -1:
                     go_to_location = location
@@ -481,12 +501,27 @@ class Dimension(Data):
         return go_to_location, number
 
     def generate_action_cards(self, counter=0, number_of_cards=10):
+        """
+        :param counter: int, counter is only incremented if an action
+        card candidate passed the evaluation test
+        :param number_of_cards: int, the number of action cards that are
+        generated when creating a new dimension, default is 10
 
-        print("Generating action cards... ")
+        - keyword selection
+        - action card generation via few shot learning
+        - action card sentiment classification via few shot learning
+        - reference action card selection
+        - outer regularization
+        - evaluation of action card against reference
+        """
+
+
         ## stop generation of action cards
         if counter > number_of_cards:
+            print("Generation of action cards completed.")
             return self.action_cards
         else:
+            print("Generating action cards... ")
             print("Counter is: ", counter)
             ## keyword generation
             location, keyword_string = self.keyword_generation()
@@ -537,9 +572,9 @@ class Dimension(Data):
                 self.generate_action_cards(counter)
 
 
-# new_dimension = Dimension()
-# new_dimension.generate_locations()
-# new_dimension.generate_action_cards()
+new_dimension = Dimension()
+new_dimension.generate_locations()
+new_dimension.generate_action_cards()
 """
 generate dimensions for live demo
 
