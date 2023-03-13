@@ -16,7 +16,7 @@ from wordfilter import Wordfilter
 
 class Data():
     def __init__(self):
-        self.API_TOKEN = "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"
+        self.API_TOKEN = "xxx"
         self.street_names = ['Park', 'Street', 'Boulevard', 'Road', 'Street', 'Drive', 'Lane', 'Alley']
         self.question_dict = {"special_1": ["What is an important monument in the movie ",
                                             "What is an extraordinary effect in the movie "],
